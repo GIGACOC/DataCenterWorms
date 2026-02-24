@@ -3,29 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Eingabe</title>
+    <title>QR-Code App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h2>Gib den Code ein</h2>
-        <input type="text" id="display" readonly>
-        <div class="keypad">
-            <button onclick="press(1)">1</button>
-            <button onclick="press(2)">2</button>
-            <button onclick="press(3)">3</button>
-            <button onclick="press(4)">4</button>
-            <button onclick="press(5)">5</button>
-            <button onclick="press(6)">6</button>
-            <button onclick="press(7)">7</button>
-            <button onclick="press(8)">8</button>
-            <button onclick="press(9)">9</button>
-            <button onclick="clearDisplay()">C</button>
-            <button onclick="press(0)">0</button>
+        <h2>QR-Code App</h2>
+        <div class="buttons">
+            <button id="createQR">QR-Code erstellen</button>
+            <button id="scanQR">QR-Code scannen</button>
         </div>
+
+        <div id="qrArea"></div>
+        <div id="scanner" style="display:none;"></div>
+
         <p id="message"></p>
     </div>
 
+    <!-- Bibliotheken per CDN, kein Download nötig -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="script.js"></script>
 </body>
 </html>
