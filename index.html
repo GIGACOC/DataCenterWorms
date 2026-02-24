@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Check</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="box">
+        <h1>Code eingeben 😎</h1>
+        
+        <input type="text" id="codeInput" placeholder="Code hier eingeben">
+        
+        <button onclick="checkCode()">Prüfen</button>
+        
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function checkCode() {
+            let code = document.getElementById("codeInput").value;
+            let result = document.getElementById("result");
+
+            if (code === "12314155") {
+                result.innerHTML = "🎉 Glückwunsch! Code richtig!";
+                result.style.color = "lime";
+            } else {
+                result.innerHTML = "❌ Falscher Code!";
+                result.style.color = "red";
+            }
+        }
+    </script>
+
+</body>
+</html>
