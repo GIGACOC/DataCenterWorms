@@ -1,4 +1,5 @@
-let currentCode = null; // Speichert den aktuellen QR-Code
+let currentCode = null; // aktueller QR-Code
+let qrInstance = null;
 
 const qrArea = document.getElementById("qrArea");
 const message = document.getElementById("message");
@@ -7,24 +8,34 @@ const scannerDiv = document.getElementById("scanner");
 document.getElementById("createQR").addEventListener("click", () => {
     // Zufälliger langer Code
     currentCode = Math.floor(Math.random() * 1e12).toString();
-    qrArea.innerHTML = ""; // alten QR löschen
-    new QRCode(qrArea, {
+    qrArea.innerHTML = "";
+    qrInstance = new QRCode(qrArea, {
         text: currentCode,
         width: 200,
         height: 200
     });
-    message.textContent = "QR-Code erstellt! Scanne ihn mit deinem Handy.";
+    message.textContent = "QR-Code erstellt! Jetzt kannst du ihn herunterladen oder scannen.";
     scannerDiv.style.display = "none";
 });
 
-document.getElementById("scanQR").addEventListener("click", () => {
-    if(!currentCode){
-        message.textContent = "Kein gültiger QR-Code vorhanden. Bitte erst erstellen!";
+// QR-Code als PNG herunterladen
+document.getElementById("downloadQR").addEventListener("click", () => {
+    if(!qrArea.querySelector("img")) {
+        message.textContent = "Erstelle zuerst einen QR-Code!";
         return;
     }
+    const img = qrArea.querySelector("img").src;
+    const link = document.createElement("a");
+    link.href = img;
+    link.download = "qr-code.png";
+    link.click();
+    message.textContent = "QR-Code heruntergeladen!";
+});
 
-    qrArea.innerHTML = "";
+// QR-Code scannen
+document.getElementById("scanQR").addEventListener("click", () => {
     scannerDiv.style.display = "block";
+    qrArea.innerHTML = "";
     message.textContent = "";
 
     const html5QrCode = new Html5Qrcode("scanner");
@@ -33,17 +44,12 @@ document.getElementById("scanQR").addEventListener("click", () => {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         (decodedText) => {
-            if(decodedText === currentCode){
-                message.textContent = `Glückwunsch! Du hast den QR gefunden. Code: ${decodedText}`;
-                currentCode = null; // QR löschen
-            } else {
-                message.textContent = "Der QR ist schon veraltet!";
-            }
+            message.textContent = `Glückwunsch! Du hast den QR gefunden. Code: ${decodedText}`;
             html5QrCode.stop();
             scannerDiv.style.display = "none";
         },
         (errorMessage) => {
-            // ignorieren, wenn kein QR erkannt
+            // ignorieren
         }
     ).catch(err => {
         message.textContent = "Fehler beim Zugriff auf Kamera: " + err;
