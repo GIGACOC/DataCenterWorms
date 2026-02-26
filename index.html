@@ -2,28 +2,76 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR-Code Generator & Scanner</title>
+    <title>Neon Data Center</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
-        <h2>QR-Code App</h2>
-        <div class="buttons">
-            <button id="createQR">QR-Code erstellen</button>
-            <button id="downloadQR">QR-Code herunterladen</button>
-            <button id="scanQR">QR-Code scannen</button>
+        <h1>💻 Neon Data Center</h1>
+
+        <div class="box">
+            <h2>Registrieren</h2>
+            <input id="regUser" placeholder="Benutzername">
+            <input id="regPass" type="password" placeholder="Passwort">
+            <button onclick="register()">Registrieren</button>
         </div>
 
-        <div id="qrArea"></div>
-        <div id="scanner" style="display:none;"></div>
+        <div class="box">
+            <h2>Login</h2>
+            <input id="logUser" placeholder="Benutzername">
+            <input id="logPass" type="password" placeholder="Passwort">
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div class="box">
+            <h2>Gitcoins: <span id="coins">0</span></h2>
+        </div>
+
+        <div class="box">
+            <h2>Coins senden</h2>
+            <input id="sendUser" placeholder="Empfänger">
+            <input id="sendAmount" placeholder="Menge">
+            <button onclick="sendCoins()">Senden</button>
+        </div>
+
+        <div class="box" id="adminPanel" style="display:none;">
+            <h2>ADMIN PANEL 👑</h2>
+            <input id="adminUser" placeholder="Benutzer">
+            <input id="adminAmount" placeholder="Coins">
+            <button onclick="adminGive()">Coins geben</button>
+            <button onclick="adminRemoveCoins()">Coins abziehen</button>
+            <button onclick="adminSetCoins()">Coins setzen</button>
+            <button onclick="adminDeleteUser()">User löschen</button>
+            <button onclick="adminToggleBan()">User sperren/entsperren</button>
+        </div>
+
+        <div class="box" id="ownerPanel" style="display:none;">
+            <h2>OWNER PANEL 👑🔥</h2>
+            <input id="adminUser" placeholder="Benutzer">
+            <button onclick="ownerMakeAdmin()">Admin machen</button>
+        </div>
+
+        <div class="box" id="userTablePanel" style="display:none;">
+            <h2>ALLE BENUTZER 👀</h2>
+            <table id="userTable">
+                <thead>
+                    <tr>
+                        <th>Benutzer</th>
+                        <th>Coins</th>
+                        <th>Rolle</th>
+                        <th>Gesperrt</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
         <p id="message"></p>
     </div>
 
-    <!-- Bibliotheken per CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="script.js"></script>
 </body>
 </html>
