@@ -1,53 +1,87 @@
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background-color: #0f0f0f;
+    font-family: 'Courier New', monospace;
+    color: #00ffea;
+    text-align: center;
     margin: 0;
-    background-color: #0d0d0d;
-    color: #fff;
+    padding: 0;
 }
 
 .container {
-    text-align: center;
-    background-color: #111;
     padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff inset;
+}
+
+h1 {
+    font-size: 3em;
+    color: #ff00ff;
+    text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
 }
 
 h2 {
-    color: #0ff;
-    text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+    font-size: 1.5em;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+}
+
+.box {
+    background-color: #111;
+    border: 2px solid #00ffea;
+    padding: 15px;
+    margin: 15px auto;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #00ffea;
+}
+
+input {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #00ffea;
+    background-color: #000;
+    color: #00ffea;
+    text-align: center;
+    font-size: 1em;
 }
 
 button {
-    margin: 10px;
-    padding: 15px 25px;
-    font-size: 18px;
-    border-radius: 10px;
-    border: 2px solid #0ff;
-    background-color: #000;
-    color: #0ff;
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff00ff;
+    color: #fff;
+    font-size: 1em;
     cursor: pointer;
-    box-shadow: 0 0 10px #0ff, 0 0 20px #0ff inset;
-    transition: all 0.2s ease;
+    box-shadow: 0 0 10px #ff00ff;
+    transition: 0.2s;
 }
 
 button:hover {
-    background-color: #0ff;
-    color: #000;
-    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff inset;
+    background-color: #ff66ff;
+    box-shadow: 0 0 20px #ff66ff;
 }
 
-#qrArea, #scanner {
-    margin-top: 20px;
+table {
+    width: 90%;
+    margin: 10px auto;
+    border-collapse: collapse;
+    text-align: center;
+    color: #00ffea;
 }
 
-#message {
-    margin-top: 20px;
-    font-size: 20px;
-    color: #ff00ff;
-    text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+th, td {
+    border: 1px solid #00ffea;
+    padding: 8px;
+}
+
+th {
+    background-color: #111;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+td {
+    background-color: #000;
 }
