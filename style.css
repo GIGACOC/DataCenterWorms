@@ -6,7 +6,7 @@ body {
     padding: 20px;
 }
 
-input {
+input, select {
     padding: 10px;
     margin: 5px;
     border: 2px solid #00ffea;
@@ -37,20 +37,15 @@ button:hover {
     text-decoration: underline;
 }
 
-/* Neon Animation */
 @keyframes pop {
   0% { transform: scale(1); text-shadow: 0 0 5px #00ffea; }
   50% { transform: scale(1.5); text-shadow: 0 0 20px #00ffea, 0 0 40px #00ffea; }
   100% { transform: scale(1); text-shadow: 0 0 5px #00ffea; }
 }
 
-.pop {
-  animation: pop 0.5s ease-in-out;
-}
+.pop { animation: pop 0.5s ease-in-out; }
 
-.table-flash {
-  animation: flash 0.3s ease-in-out;
-}
+.table-flash { animation: flash 0.3s ease-in-out; }
 
 @keyframes flash {
   0% { background-color: #111; color: #00ffea; }
