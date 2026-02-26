@@ -1,4 +1,6 @@
+// ==========================
 // Firebase Setup
+// ==========================
 const firebaseConfig = {
   apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
   authDomain: "datacentercoc.firebaseapp.com",
@@ -15,24 +17,32 @@ const db = firebase.firestore();
 window.currentUser = null;
 const message = document.getElementById("message");
 
-// Login/Register Switch
+// ==========================
+// LOGIN / REGISTER SWITCH
+// ==========================
 function showRegister() { document.getElementById("loginBox").style.display="none"; document.getElementById("registerBox").style.display="block"; }
 function showLogin() { document.getElementById("registerBox").style.display="none"; document.getElementById("loginBox").style.display="block"; }
 
-// Registration
+// ==========================
+// REGISTRIERUNG
+// ==========================
 async function register() {
     const username = document.getElementById("regUser").value;
     const password = document.getElementById("regPass").value;
     if (!username || !password) { message.textContent="Bitte alles ausfüllen!"; return; }
+
     const doc = await db.collection("users").doc(username).get();
     if (doc.exists) { message.textContent="Benutzername existiert schon!"; return; }
+
     await db.collection("users").doc(username).set({ password: password, coins: 100, role:"user", bannedUntil:null });
     message.textContent="Registrierung erfolgreich!";
     document.getElementById("regUser").value=username; document.getElementById("regPass").value=password;
     login();
 }
 
-// Login
+// ==========================
+// LOGIN
+// ==========================
 async function login() {
     const username = document.getElementById("logUser").value || document.getElementById("regUser").value;
     const password = document.getElementById("logPass").value || document.getElementById("regPass").value;
@@ -43,24 +53,28 @@ async function login() {
     if (data.password !== password) { message.textContent="Falsches Passwort!"; return; }
 
     window.currentUser=username;
+    document.getElementById("currentUser").textContent=username;
     document.getElementById("loginBox").style.display="none";
     document.getElementById("registerBox").style.display="none";
     document.getElementById("dashboard").style.display="block";
     message.textContent="Login erfolgreich 😎";
-    loadCoins(username);
 
+    loadCoins(username);
     if (data.role==="admin" || data.role==="owner") document.getElementById("adminPanel").style.display="block";
     if (data.role==="owner") document.getElementById("ownerPanel").style.display="block";
-
     loadUserTable();
 }
 
+// ==========================
 // Coins live
+// ==========================
 function loadCoins(username) {
     db.collection("users").doc(username).onSnapshot(doc=>{ document.getElementById("coins").textContent=doc.data().coins; });
 }
 
+// ==========================
 // Coins senden
+// ==========================
 async function sendCoins() {
     const toUser = document.getElementById("sendUser").value;
     const amount = parseInt(document.getElementById("sendAmount").value);
@@ -77,11 +91,15 @@ async function sendCoins() {
     animateCoins(); animateTable();
 }
 
+// ==========================
 // Neon Animationen
+// ==========================
 function animateCoins() { const coinEl=document.getElementById("coins"); coinEl.classList.add("pop"); setTimeout(()=>{ coinEl.classList.remove("pop"); },500);}
 function animateTable() { const tbody=document.querySelector("#userTable tbody"); tbody.classList.add("table-flash"); setTimeout(()=>{ tbody.classList.remove("table-flash"); },300); }
 
-// Admin Coins bearbeiten
+// ==========================
+// Admin: Coins bearbeiten
+// ==========================
 async function adminEditCoins() {
     const user=document.getElementById("adminUser").value;
     const amount=parseInt(document.getElementById("adminAmount").value);
@@ -91,27 +109,81 @@ async function adminEditCoins() {
     message.textContent="Coins geändert 💰"; animateTable();
 }
 
-// Admin User sperren
+// ==========================
+// Admin: User sperren
+// ==========================
 async function adminBanUser() {
     const user=document.getElementById("adminUser").value;
     const duration=document.getElementById("banDuration").value;
     const ref=db.collection("users").doc(user); const doc=await ref.get();
     if (!doc.exists) { message.textContent="User existiert nicht!"; return; }
-    const now=new Date(); const amount=parseInt(duration);
+
+    const now=new Date();
+    const amount=parseInt(duration);
     const unit=duration.replace(amount,"").trim(); let ms=0;
     if(unit==="s") ms=amount*1000; if(unit==="m") ms=amount*60*1000; if(unit==="h") ms=amount*60*60*1000; if(unit==="d") ms=amount*24*60*60*1000;
     const bannedUntil=new Date(now.getTime()+ms);
+
     await ref.update({ bannedUntil: firebase.firestore.Timestamp.fromDate(bannedUntil) });
     message.textContent=`User gesperrt bis ${bannedUntil.toLocaleString()}`;
 }
 
-// Admin User löschen
-async function adminDeleteUser() { const user=document.getElementById("adminUser").value; await db.collection("users").doc(user).delete(); message.textContent="User gelöscht ❌"; animateTable(); }
+// ==========================
+// Admin: User löschen
+// ==========================
+async function adminDeleteUser() {
+    const user=document.getElementById("adminUser").value;
+    await db.collection("users").doc(user).delete();
+    message.textContent="User gelöscht ❌";
+    animateTable();
+}
 
-// Owner Admin erstellen
-async function ownerMakeAdmin() { const user=document.getElementById("adminUser").value; const ref=db.collection("users").doc(user); await ref.update({ role:"admin" }); message.textContent="Neuer Admin erstellt 👑"; animateTable(); }
+// ==========================
+// Owner: Admin erstellen
+// ==========================
+async function ownerMakeAdmin() {
+    const user=document.getElementById("adminUser").value;
+    const ref=db.collection("users").doc(user);
+    await ref.update({ role:"admin" });
+    message.textContent="Neuer Admin erstellt 👑";
+    animateTable();
+}
 
+// ==========================
+// Owner: Benutzername & Passwort ändern
+// ==========================
+async function ownerEditUser() {
+    const targetUser=document.getElementById("adminUser").value;
+    const newUsername=document.getElementById("newUsername").value.trim();
+    const newPassword=document.getElementById("newPassword").value.trim();
+    if (!targetUser) { message.textContent="Bitte zuerst Benutzer auswählen!"; return; }
+
+    const userRef=db.collection("users").doc(targetUser);
+    const doc=await userRef.get();
+    if (!doc.exists) { message.textContent="Benutzer existiert nicht!"; return; }
+
+    // Passwort ändern
+    if (newPassword) {
+        await userRef.update({ password: newPassword });
+        message.textContent="Passwort geändert 🔑";
+    }
+
+    // Benutzername ändern
+    if (newUsername && newUsername!==targetUser) {
+        const newDoc=await db.collection("users").doc(newUsername).get();
+        if (newDoc.exists) { message.textContent="Neuer Benutzername existiert schon!"; return; }
+        const data=doc.data();
+        await db.collection("users").doc(newUsername).set(data);
+        await userRef.delete();
+        message.textContent="Benutzername geändert ✨";
+    }
+
+    loadUserTable();
+}
+
+// ==========================
 // User Tabelle Live
+// ==========================
 function loadUserTable() {
     const tbody=document.querySelector("#userTable tbody");
     tbody.innerHTML="";
