@@ -16,7 +16,19 @@ window.currentUser = null;
 const message = document.getElementById("message");
 
 // =====================
-// Registrierung
+// LOGIN & REG SWITCH
+// =====================
+function showRegister() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("registerBox").style.display = "block";
+}
+function showLogin() {
+    document.getElementById("registerBox").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+}
+
+// =====================
+// REGISTRIERUNG
 // =====================
 async function register() {
     const username = document.getElementById("regUser").value;
@@ -35,14 +47,19 @@ async function register() {
     });
 
     message.textContent="Registrierung erfolgreich!";
+
+    // Automatisch anmelden
+    document.getElementById("regUser").value = username;
+    document.getElementById("regPass").value = password;
+    login();
 }
 
 // =====================
-// Login
+// LOGIN
 // =====================
 async function login() {
-    const username = document.getElementById("logUser").value;
-    const password = document.getElementById("logPass").value;
+    const username = document.getElementById("logUser").value || document.getElementById("regUser").value;
+    const password = document.getElementById("logPass").value || document.getElementById("regPass").value;
 
     const doc = await db.collection("users").doc(username).get();
     if (!doc.exists) { message.textContent="Benutzer nicht gefunden!"; return; }
@@ -51,8 +68,14 @@ async function login() {
     if (data.password !== password) { message.textContent="Falsches Passwort!"; return; }
     if (data.banned) { message.textContent="Konto gesperrt 🔒"; return; }
 
-    message.textContent="Login erfolgreich 😎";
     window.currentUser = username;
+
+    // Dashboard anzeigen
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("registerBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+
+    message.textContent="Login erfolgreich 😎";
 
     loadCoins(username);
 
@@ -63,7 +86,7 @@ async function login() {
 }
 
 // =====================
-// Coins Live
+// Coins Live Anzeige
 // =====================
 function loadCoins(username) {
     db.collection("users").doc(username).onSnapshot(doc => {
@@ -98,9 +121,7 @@ async function sendCoins() {
 // =====================
 // ADMIN / OWNER FUNKTIONEN
 // =====================
-async function adminGive() {
-    await updateCoins("add"); message.textContent="Coins hinzugefügt 👑";
-}
+async function adminGive() { await updateCoins("add"); message.textContent="Coins hinzugefügt 👑"; }
 async function adminRemoveCoins() { await updateCoins("remove"); message.textContent="Coins abgezogen 💸"; }
 async function adminSetCoins() { await updateCoins("set"); message.textContent="Coins gesetzt 🎯"; }
 
