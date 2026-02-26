@@ -1,6 +1,4 @@
-// ==========================
 // Firebase Setup
-// ==========================
 const firebaseConfig = {
   apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
   authDomain: "datacentercoc.firebaseapp.com",
@@ -10,47 +8,37 @@ const firebaseConfig = {
   appId: "1:501916869918:web:d1eda1d739c921d934550f",
   measurementId: "G-7Q13KCZ02J"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 window.currentUser = null;
 const message = document.getElementById("message");
 
-// ==========================
 // LOGIN / REGISTER SWITCH
-// ==========================
-function showRegister() { document.getElementById("loginBox").style.display="none"; document.getElementById("registerBox").style.display="block"; }
-function showLogin() { document.getElementById("registerBox").style.display="none"; document.getElementById("loginBox").style.display="block"; }
+function showRegister(){ document.getElementById("loginBox").style.display="none"; document.getElementById("registerBox").style.display="block"; }
+function showLogin(){ document.getElementById("registerBox").style.display="none"; document.getElementById("loginBox").style.display="block"; }
 
-// ==========================
 // REGISTRIERUNG
-// ==========================
-async function register() {
-    const username = document.getElementById("regUser").value;
-    const password = document.getElementById("regPass").value;
-    if (!username || !password) { message.textContent="Bitte alles ausfüllen!"; return; }
-
-    const doc = await db.collection("users").doc(username).get();
-    if (doc.exists) { message.textContent="Benutzername existiert schon!"; return; }
-
-    await db.collection("users").doc(username).set({ password: password, coins: 100, role:"user", bannedUntil:null });
-    message.textContent="Registrierung erfolgreich!";
+async function register(){
+    const username=document.getElementById("regUser").value;
+    const password=document.getElementById("regPass").value;
+    if(!username || !password){ message.textContent="Bitte alles ausfüllen!"; return; }
+    const doc=await db.collection("users").doc(username).get();
+    if(doc.exists){ message.textContent="Benutzername existiert schon!"; return; }
+    await db.collection("users").doc(username).set({ password, coins:100, role:"user", bannedUntil:null, messages:[] });
     document.getElementById("regUser").value=username; document.getElementById("regPass").value=password;
     login();
 }
 
-// ==========================
 // LOGIN
-// ==========================
-async function login() {
-    const username = document.getElementById("logUser").value || document.getElementById("regUser").value;
-    const password = document.getElementById("logPass").value || document.getElementById("regPass").value;
-    const doc = await db.collection("users").doc(username).get();
-    if (!doc.exists) { message.textContent="Benutzer nicht gefunden!"; return; }
-    const data = doc.data();
-    if (data.bannedUntil && data.bannedUntil.toDate() > new Date()) { message.textContent=`Konto gesperrt bis ${data.bannedUntil.toDate().toLocaleString()}`; return; }
-    if (data.password !== password) { message.textContent="Falsches Passwort!"; return; }
+async function login(){
+    const username=document.getElementById("logUser").value||document.getElementById("regUser").value;
+    const password=document.getElementById("logPass").value||document.getElementById("regPass").value;
+    const doc=await db.collection("users").doc(username).get();
+    if(!doc.exists){ message.textContent="Benutzer nicht gefunden!"; return; }
+    const data=doc.data();
+    if(data.bannedUntil && data.bannedUntil.toDate()>new Date()){ message.textContent=`Konto gesperrt bis ${data.bannedUntil.toDate().toLocaleString()}`; return; }
+    if(data.password!==password){ message.textContent="Falsches Passwort!"; return; }
 
     window.currentUser=username;
     document.getElementById("currentUser").textContent=username;
@@ -60,140 +48,108 @@ async function login() {
     message.textContent="Login erfolgreich 😎";
 
     loadCoins(username);
-    if (data.role==="admin" || data.role==="owner") document.getElementById("adminPanel").style.display="block";
-    if (data.role==="owner") document.getElementById("ownerPanel").style.display="block";
+    if(data.role==="admin"||data.role==="owner") document.getElementById("adminPanel").style.display="block";
+    if(data.role==="owner") document.getElementById("ownerPanel").style.display="block";
     loadUserTable();
 }
 
-// ==========================
 // Coins live
-// ==========================
-function loadCoins(username) {
-    db.collection("users").doc(username).onSnapshot(doc=>{ document.getElementById("coins").textContent=doc.data().coins; });
-}
+function loadCoins(username){ db.collection("users").doc(username).onSnapshot(doc=>{ document.getElementById("coins").textContent=doc.data().coins; }); }
 
-// ==========================
 // Coins senden
-// ==========================
-async function sendCoins() {
-    const toUser = document.getElementById("sendUser").value;
-    const amount = parseInt(document.getElementById("sendAmount").value);
-    if (!toUser || !amount) { message.textContent="Fehlende Eingabe!"; return; }
-    const fromRef = db.collection("users").doc(window.currentUser);
-    const toRef = db.collection("users").doc(toUser);
-    const fromDoc = await fromRef.get(); const toDoc = await toRef.get();
-    if (!toDoc.exists) { message.textContent="Empfänger existiert nicht!"; return; }
-    if (fromDoc.data().coins < amount) { message.textContent="Zu wenig Gitcoins!"; return; }
-
-    await fromRef.update({ coins: fromDoc.data().coins - amount });
-    await toRef.update({ coins: toDoc.data().coins + amount });
-    message.textContent="Coins gesendet 😎💰";
-    animateCoins(); animateTable();
+async function sendCoins(){
+    const toUser=document.getElementById("sendUser").value;
+    const amount=parseInt(document.getElementById("sendAmount").value);
+    if(!toUser||!amount){ message.textContent="Fehlende Eingabe!"; return; }
+    const fromRef=db.collection("users").doc(window.currentUser);
+    const toRef=db.collection("users").doc(toUser);
+    const fromDoc=await fromRef.get(); const toDoc=await toRef.get();
+    if(!toDoc.exists){ message.textContent="Empfänger existiert nicht!"; return; }
+    if(fromDoc.data().coins<amount){ message.textContent="Zu wenig Gitcoins!"; return; }
+    await fromRef.update({ coins: fromDoc.data().coins-amount });
+    await toRef.update({ coins: toDoc.data().coins+amount });
+    message.textContent="Coins gesendet 😎💰"; animateCoins(); animateTable();
 }
 
-// ==========================
-// Neon Animationen
-// ==========================
-function animateCoins() { const coinEl=document.getElementById("coins"); coinEl.classList.add("pop"); setTimeout(()=>{ coinEl.classList.remove("pop"); },500);}
-function animateTable() { const tbody=document.querySelector("#userTable tbody"); tbody.classList.add("table-flash"); setTimeout(()=>{ tbody.classList.remove("table-flash"); },300); }
+// Neon Animation
+function animateCoins(){ const coinEl=document.getElementById("coins"); coinEl.classList.add("pop"); setTimeout(()=>{ coinEl.classList.remove("pop"); },500);}
+function animateTable(){ const tbody=document.querySelector("#userTable tbody"); tbody.classList.add("table-flash"); setTimeout(()=>{ tbody.classList.remove("table-flash"); },300);}
 
-// ==========================
 // Admin: Coins bearbeiten
-// ==========================
-async function adminEditCoins() {
-    const user=document.getElementById("adminUser").value;
-    const amount=parseInt(document.getElementById("adminAmount").value);
-    const ref=db.collection("users").doc(user); const doc=await ref.get();
-    if (!doc.exists) { message.textContent="User existiert nicht!"; return; }
-    let coins=doc.data().coins+amount; if (coins<0) coins=0; await ref.update({ coins });
-    message.textContent="Coins geändert 💰"; animateTable();
-}
+async function adminEditCoins(){ const user=document.getElementById("adminUser").value; const amount=parseInt(document.getElementById("adminAmount").value); const ref=db.collection("users").doc(user); const doc=await ref.get(); if(!doc.exists){ message.textContent="User existiert nicht!"; return; } let coins=doc.data().coins+amount; if(coins<0) coins=0; await ref.update({ coins }); message.textContent="Coins geändert 💰"; animateTable(); }
 
-// ==========================
 // Admin: User sperren
-// ==========================
-async function adminBanUser() {
-    const user=document.getElementById("adminUser").value;
-    const duration=document.getElementById("banDuration").value;
-    const ref=db.collection("users").doc(user); const doc=await ref.get();
-    if (!doc.exists) { message.textContent="User existiert nicht!"; return; }
+async function adminBanUser(){ const user=document.getElementById("adminUser").value; const duration=document.getElementById("banDuration").value; const ref=db.collection("users").doc(user); const doc=await ref.get(); if(!doc.exists){ message.textContent="User existiert nicht!"; return; } const now=new Date(); const amount=parseInt(duration); const unit=duration.replace(amount,"").trim(); let ms=0; if(unit==="s") ms=amount*1000; if(unit==="m") ms=amount*60*1000; if(unit==="h") ms=amount*60*60*1000; if(unit==="d") ms=amount*24*60*60*1000; const bannedUntil=new Date(now.getTime()+ms); await ref.update({ bannedUntil: firebase.firestore.Timestamp.fromDate(bannedUntil) }); message.textContent=`User gesperrt bis ${bannedUntil.toLocaleString()}`;}
 
-    const now=new Date();
-    const amount=parseInt(duration);
-    const unit=duration.replace(amount,"").trim(); let ms=0;
-    if(unit==="s") ms=amount*1000; if(unit==="m") ms=amount*60*1000; if(unit==="h") ms=amount*60*60*1000; if(unit==="d") ms=amount*24*60*60*1000;
-    const bannedUntil=new Date(now.getTime()+ms);
-
-    await ref.update({ bannedUntil: firebase.firestore.Timestamp.fromDate(bannedUntil) });
-    message.textContent=`User gesperrt bis ${bannedUntil.toLocaleString()}`;
-}
-
-// ==========================
 // Admin: User löschen
-// ==========================
-async function adminDeleteUser() {
-    const user=document.getElementById("adminUser").value;
-    await db.collection("users").doc(user).delete();
-    message.textContent="User gelöscht ❌";
-    animateTable();
-}
+async function adminDeleteUser(){ const user=document.getElementById("adminUser").value; await db.collection("users").doc(user).delete(); message.textContent="User gelöscht ❌"; animateTable();}
 
-// ==========================
 // Owner: Admin erstellen
-// ==========================
-async function ownerMakeAdmin() {
-    const user=document.getElementById("adminUser").value;
-    const ref=db.collection("users").doc(user);
-    await ref.update({ role:"admin" });
-    message.textContent="Neuer Admin erstellt 👑";
-    animateTable();
-}
+async function ownerMakeAdmin(){ const user=document.getElementById("adminUser").value; const ref=db.collection("users").doc(user); await ref.update({ role:"admin" }); message.textContent="Neuer Admin erstellt 👑"; animateTable();}
 
-// ==========================
 // Owner: Benutzername & Passwort ändern
+async function ownerEditUser(){ const targetUser=document.getElementById("adminUser").value; const newUsername=document.getElementById("newUsername").value.trim(); const newPassword=document.getElementById("newPassword").value.trim(); if(!targetUser){ message.textContent="Bitte zuerst Benutzer auswählen!"; return; } const userRef=db.collection("users").doc(targetUser); const doc=await userRef.get(); if(!doc.exists){ message.textContent="Benutzer existiert nicht!"; return; } if(newPassword){ await userRef.update({ password:newPassword }); message.textContent="Passwort geändert 🔑"; } if(newUsername&&newUsername!==targetUser){ const newDoc=await db.collection("users").doc(newUsername).get(); if(newDoc.exists){ message.textContent="Neuer Benutzername existiert schon!"; return; } const data=doc.data(); await db.collection("users").doc(newUsername).set(data); await userRef.delete(); message.textContent="Benutzername geändert ✨"; } loadUserTable();}
+
+// User Tabelle Live
+function loadUserTable(){ const tbody=document.querySelector("#userTable tbody"); tbody.innerHTML=""; db.collection("users").onSnapshot(snapshot=>{ tbody.innerHTML=""; snapshot.forEach(doc=>{ const data=doc.data(); const tr=document.createElement("tr"); tr.innerHTML=`<td>${doc.id}</td><td>${data.coins}</td><td>${data.role}</td><td>${data.bannedUntil && data.bannedUntil.toDate()>new Date()?"Ja":"Nein"}</td>`; tbody.appendChild(tr); }); });}
+
 // ==========================
-async function ownerEditUser() {
-    const targetUser=document.getElementById("adminUser").value;
-    const newUsername=document.getElementById("newUsername").value.trim();
-    const newPassword=document.getElementById("newPassword").value.trim();
-    if (!targetUser) { message.textContent="Bitte zuerst Benutzer auswählen!"; return; }
-
-    const userRef=db.collection("users").doc(targetUser);
-    const doc=await userRef.get();
-    if (!doc.exists) { message.textContent="Benutzer existiert nicht!"; return; }
-
-    // Passwort ändern
-    if (newPassword) {
-        await userRef.update({ password: newPassword });
-        message.textContent="Passwort geändert 🔑";
-    }
-
-    // Benutzername ändern
-    if (newUsername && newUsername!==targetUser) {
-        const newDoc=await db.collection("users").doc(newUsername).get();
-        if (newDoc.exists) { message.textContent="Neuer Benutzername existiert schon!"; return; }
-        const data=doc.data();
-        await db.collection("users").doc(newUsername).set(data);
-        await userRef.delete();
-        message.textContent="Benutzername geändert ✨";
-    }
-
-    loadUserTable();
+// Nachrichten System
+// ==========================
+function fillUserDropdown(){
+    const select=document.getElementById("msgUserSelect");
+    select.innerHTML='<option value="">Benutzer auswählen</option>';
+    db.collection("users").get().then(snapshot=>{
+        snapshot.forEach(doc=>{
+            if(doc.id!==window.currentUser){
+                const option=document.createElement("option");
+                option.value=doc.id; option.textContent=doc.id; select.appendChild(option);
+            }
+        });
+    });
 }
 
-// ==========================
-// User Tabelle Live
-// ==========================
-function loadUserTable() {
-    const tbody=document.querySelector("#userTable tbody");
-    tbody.innerHTML="";
-    db.collection("users").onSnapshot(snapshot=>{
-        tbody.innerHTML="";
-        snapshot.forEach(doc=>{
-            const data=doc.data();
-            const tr=document.createElement("tr");
-            tr.innerHTML=`<td>${doc.id}</td><td>${data.coins}</td><td>${data.role}</td><td>${data.bannedUntil && data.bannedUntil.toDate()>new Date()?"Ja":"Nein"}</td>`;
-            tbody.appendChild(tr);
+function openMessagePanel(){
+    document.getElementById("dashboard").style.display="none";
+    document.getElementById("messagePanel").style.display="block";
+    fillUserDropdown(); loadInbox();
+}
+
+function closeMessagePanel(){
+    document.getElementById("messagePanel").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+}
+
+// Nachricht senden
+async function sendMessage(){
+    const userSelect=document.getElementById("msgUserSelect").value;
+    const userInput=document.getElementById("msgUser").value.trim();
+    const toUser=userSelect||userInput;
+    const text=document.getElementById("msgText").value.trim();
+    if(!toUser||!text){ message.textContent="Bitte Benutzer und Nachricht ausfüllen!"; return; }
+
+    const ref=db.collection("users").doc(toUser); const doc=await ref.get();
+    if(!doc.exists){ message.textContent="Benutzer existiert nicht!"; return; }
+    const data=doc.data(); let messages=data.messages||[];
+    messages.push({ from: window.currentUser, text, date:new Date() });
+    await ref.update({ messages });
+    message.textContent="Nachricht gesendet ✉️";
+    document.getElementById("msgUser").value=""; document.getElementById("msgText").value="";
+    loadInbox();
+}
+
+// Postfach laden
+function loadInbox(){
+    const inbox=document.getElementById("inbox");
+    inbox.innerHTML="";
+    db.collection("users").doc(window.currentUser).onSnapshot(doc=>{
+        const messages=doc.data().messages||[];
+        messages.sort((a,b)=>b.date.seconds-a.date.seconds);
+        messages.forEach(msg=>{
+            const div=document.createElement("div");
+            const date=new Date(msg.date.seconds*1000).toLocaleString();
+            div.innerHTML=`<b>${msg.from}</b> [${date}]: ${msg.text}`;
+            inbox.appendChild(div);
         });
     });
 }
