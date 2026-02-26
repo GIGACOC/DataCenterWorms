@@ -10,63 +10,75 @@
 </head>
 <body>
     <div class="container">
+
         <h1>💻 Neon Data Center</h1>
 
-        <div class="box">
-            <h2>Registrieren</h2>
-            <input id="regUser" placeholder="Benutzername">
-            <input id="regPass" type="password" placeholder="Passwort">
-            <button onclick="register()">Registrieren</button>
-        </div>
-
-        <div class="box">
+        <!-- LOGIN BOX -->
+        <div class="box" id="loginBox">
             <h2>Login</h2>
             <input id="logUser" placeholder="Benutzername">
             <input id="logPass" type="password" placeholder="Passwort">
             <button onclick="login()">Login</button>
+            <p class="switch" onclick="showRegister()">Hast du noch kein Konto? Dann registriere eins!</p>
         </div>
 
-        <div class="box">
-            <h2>Gitcoins: <span id="coins">0</span></h2>
+        <!-- REGISTRIERUNG BOX -->
+        <div class="box" id="registerBox" style="display:none;">
+            <h2>Registrieren</h2>
+            <input id="regUser" placeholder="Benutzername">
+            <input id="regPass" type="password" placeholder="Passwort">
+            <button onclick="register()">Registrieren</button>
+            <p class="switch" onclick="showLogin()">Schon ein Konto? Dann melde dich an!</p>
         </div>
 
-        <div class="box">
-            <h2>Coins senden</h2>
-            <input id="sendUser" placeholder="Empfänger">
-            <input id="sendAmount" placeholder="Menge">
-            <button onclick="sendCoins()">Senden</button>
-        </div>
+        <!-- DASHBOARD nach Login -->
+        <div id="dashboard" style="display:none;">
 
-        <div class="box" id="adminPanel" style="display:none;">
-            <h2>ADMIN PANEL 👑</h2>
-            <input id="adminUser" placeholder="Benutzer">
-            <input id="adminAmount" placeholder="Coins">
-            <button onclick="adminGive()">Coins geben</button>
-            <button onclick="adminRemoveCoins()">Coins abziehen</button>
-            <button onclick="adminSetCoins()">Coins setzen</button>
-            <button onclick="adminDeleteUser()">User löschen</button>
-            <button onclick="adminToggleBan()">User sperren/entsperren</button>
-        </div>
+            <div class="box">
+                <h2>Gitcoins: <span id="coins">0</span></h2>
+            </div>
 
-        <div class="box" id="ownerPanel" style="display:none;">
-            <h2>OWNER PANEL 👑🔥</h2>
-            <input id="adminUser" placeholder="Benutzer">
-            <button onclick="ownerMakeAdmin()">Admin machen</button>
-        </div>
+            <div class="box">
+                <h2>Coins senden</h2>
+                <input id="sendUser" placeholder="Empfänger">
+                <input id="sendAmount" placeholder="Menge">
+                <button onclick="sendCoins()">Senden</button>
+            </div>
 
-        <div class="box" id="userTablePanel" style="display:none;">
-            <h2>ALLE BENUTZER 👀</h2>
-            <table id="userTable">
-                <thead>
-                    <tr>
-                        <th>Benutzer</th>
-                        <th>Coins</th>
-                        <th>Rolle</th>
-                        <th>Gesperrt</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <!-- ADMIN PANEL -->
+            <div class="box" id="adminPanel" style="display:none;">
+                <h2>ADMIN PANEL 👑</h2>
+                <input id="adminUser" placeholder="Benutzer">
+                <input id="adminAmount" placeholder="Coins">
+                <button onclick="adminGive()">Coins geben</button>
+                <button onclick="adminRemoveCoins()">Coins abziehen</button>
+                <button onclick="adminSetCoins()">Coins setzen</button>
+                <button onclick="adminDeleteUser()">User löschen</button>
+                <button onclick="adminToggleBan()">User sperren/entsperren</button>
+            </div>
+
+            <!-- OWNER PANEL -->
+            <div class="box" id="ownerPanel" style="display:none;">
+                <h2>OWNER PANEL 👑🔥</h2>
+                <input id="adminUser" placeholder="Benutzer">
+                <button onclick="ownerMakeAdmin()">Admin machen</button>
+            </div>
+
+            <!-- USER TABELLE LIVE -->
+            <div class="box" id="userTablePanel" style="display:none;">
+                <h2>ALLE BENUTZER 👀</h2>
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>Benutzer</th>
+                            <th>Coins</th>
+                            <th>Rolle</th>
+                            <th>Gesperrt</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
 
         <p id="message"></p>
