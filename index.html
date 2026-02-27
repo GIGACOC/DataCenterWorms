@@ -1,118 +1,99 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataCenterCoC</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataCenterCoC</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <div class="container">
 
-        <p id="message"></p>
+<div class="container">
 
-        <!-- LOGIN -->
-        <div id="loginBox">
-            <h2>Login</h2>
-            <input type="text" id="logUser" placeholder="Benutzername">
-            <input type="password" id="logPass" placeholder="Passwort">
-            <button onclick="login()">Login</button>
-            <p>Hast du noch kein Konto? <span onclick="showRegister()" class="link">Dann registriere eins</span></p>
-        </div>
+<p id="message"></p>
 
-        <!-- REGISTRIERUNG -->
-        <div id="registerBox" style="display:none;">
-            <h2>Registrieren</h2>
-            <input type="text" id="regUser" placeholder="Benutzername">
-            <input type="password" id="regPass" placeholder="Passwort">
-            <button onclick="register()">Registrieren</button>
-            <p>Schon ein Konto? <span onclick="showLogin()" class="link">Login hier</span></p>
-        </div>
+<!-- LOGIN -->
+<div id="loginBox">
+<h2>Login</h2>
+<input id="logUser" placeholder="Benutzername">
+<input id="logPass" type="password" placeholder="Passwort">
+<button onclick="login()">Login</button>
+<p class="link" onclick="showRegister()">Registrieren</p>
+</div>
 
-        <!-- DASHBOARD -->
-        <div id="dashboard" style="display:none;">
-            <h2>Willkommen, <span id="currentUser"></span>!</h2>
-            <p>Gitcoins: <span id="coins">0</span></p>
+<!-- REGISTER -->
+<div id="registerBox" style="display:none;">
+<h2>Registrieren</h2>
+<input id="regUser" placeholder="Benutzername">
+<input id="regPass" type="password" placeholder="Passwort">
+<button onclick="register()">Registrieren</button>
+<p class="link" onclick="showLogin()">Zurück zum Login</p>
+</div>
 
-            <h3>Gitcoins senden</h3>
-            <input type="text" id="sendUser" placeholder="Empfänger Benutzername">
-            <input type="number" id="sendAmount" placeholder="Anzahl">
-            <button onclick="sendCoins()">Senden</button>
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
 
-            <!-- Transaktions-History -->
-            <h3>Transaktions-History</h3>
-            <div id="txHistory" style="text-align:left; max-height:200px; overflow-y:auto; border:1px solid #00ffea; padding:5px;">
-                <!-- Transaktionen erscheinen hier -->
-            </div>
+<h2>Willkommen <span id="currentUser"></span></h2>
+<p>Gitcoins: <span id="coins">0</span></p>
 
-            <!-- Nachrichten -->
-            <button onclick="openMessagePanel()">Nachricht schreiben ✉️</button>
+<h3>Gitcoins senden</h3>
+<input id="sendUser" placeholder="Empfänger">
+<input id="sendAmount" type="number" placeholder="Anzahl">
+<button onclick="sendCoins()">Senden</button>
 
-            <!-- Admin Panel -->
-            <div id="adminPanel" style="display:none;">
-                <h3>ADMIN PANEL 👑</h3>
-                <input id="adminUser" placeholder="Benutzer">
-                <input id="adminAmount" placeholder="Coins (+/-)">
-                <button onclick="adminEditCoins()">Coins ändern</button>
+<h3>Transaktions-History</h3>
+<div id="txHistory" class="box"></div>
 
-                <input id="banDuration" placeholder="Sperre (z.B. 10 s, 5 m, 2 h, 1 d)">
-                <button onclick="adminBanUser()">Benutzer sperren</button>
+<button onclick="openMessagePanel()">Nachrichten ✉️</button>
 
-                <button onclick="adminDeleteUser()">User löschen</button>
-            </div>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;">
+<h3>ADMIN PANEL</h3>
+<input id="adminUser" placeholder="Benutzer">
+<input id="adminAmount" placeholder="Coins (+/-)">
+<button onclick="adminEditCoins()">Coins ändern</button>
+</div>
 
-            <!-- Owner Panel -->
-            <div id="ownerPanel" style="display:none;">
-                <h3>OWNER PANEL 👑</h3>
-                <input id="adminUser" placeholder="Benutzer">
-                <button onclick="ownerMakeAdmin()">Neuen Admin erstellen</button>
+<!-- OWNER PANEL -->
+<div id="ownerPanel" style="display:none;">
+<h3>OWNER PANEL</h3>
+<input id="newAdminUser" placeholder="Benutzer">
+<button onclick="ownerMakeAdmin()">Zu Admin machen</button>
+</div>
 
-                <h4>User ändern</h4>
-                <input id="newUsername" placeholder="Neuer Benutzername">
-                <input id="newPassword" placeholder="Neues Passwort">
-                <button onclick="ownerEditUser()">User ändern</button>
-            </div>
+<h3>Alle User</h3>
+<table>
+<thead>
+<tr>
+<th>Benutzer</th>
+<th>Coins</th>
+<th>Rolle</th>
+<th>Ban</th>
+</tr>
+</thead>
+<tbody id="userTable"></tbody>
+</table>
 
-            <!-- User Tabelle -->
-            <h3>Alle User</h3>
-            <table id="userTable">
-                <thead>
-                    <tr>
-                        <th>Benutzer</th>
-                        <th>Coins</th>
-                        <th>Rolle</th>
-                        <th>Gesperrt</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+</div>
 
-        <!-- Nachrichten Panel -->
-        <div id="messagePanel" style="display:none;">
-            <h3>Nachricht senden</h3>
+<!-- MESSAGE PANEL -->
+<div id="messagePanel" style="display:none;">
+<h3>Nachricht senden</h3>
+<select id="msgUserSelect"></select>
+<input id="msgText" placeholder="Nachricht">
+<button onclick="sendMessage()">Senden</button>
+<button onclick="closeMessagePanel()">X</button>
 
-            <!-- Dropdown gespeicherte Benutzer -->
-            <select id="msgUserSelect">
-                <option value="">Benutzer auswählen</option>
-            </select>
+<h3>Postfach</h3>
+<div id="inbox" class="box"></div>
+</div>
 
-            <!-- Manuelle Eingabe -->
-            <input id="msgUser" placeholder="Oder Benutzername eingeben">
-            <input id="msgText" placeholder="Nachricht">
-            <button onclick="sendMessage()">Senden</button>
-            <button onclick="closeMessagePanel()">✖ Schließen</button>
+</div>
 
-            <h3>Postfach 📬</h3>
-            <div id="inbox" style="text-align:left; max-height:200px; overflow-y:auto; border:1px solid #00ffea; padding:5px;">
-                <!-- Nachrichten erscheinen hier -->
-            </div>
-        </div>
-
-    </div>
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
