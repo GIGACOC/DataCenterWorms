@@ -1,7 +1,11 @@
 const firebaseConfig = {
-apiKey: "DEIN_API_KEY",
-authDomain: "DEIN_PROJECT.firebaseapp.com",
-projectId: "DEIN_PROJECT"
+apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
+  authDomain: "datacentercoc.firebaseapp.com",
+  projectId: "datacentercoc",
+  storageBucket: "datacentercoc.firebasestorage.app",
+  messagingSenderId: "501916869918",
+  appId: "1:501916869918:web:d1eda1d739c921d934550f",
+  measurementId: "G-7Q13KCZ02J"
 };
 
 firebase.initializeApp(firebaseConfig);
