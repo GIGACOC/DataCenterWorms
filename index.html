@@ -1,99 +1,62 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DataCenterCoC</title>
+  <meta charset="UTF-8">
+  <title>Gitcoin System</title>
 
-<link rel="stylesheet" href="style.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    .box {
+      background: #222;
+      padding: 20px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 10px;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 90%;
+    }
+
+    button {
+      padding: 8px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    #panel {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-
-<p id="message"></p>
-
-<!-- LOGIN -->
-<div id="loginBox">
-<h2>Login</h2>
-<input id="logUser" placeholder="Benutzername">
-<input id="logPass" type="password" placeholder="Passwort">
-<button onclick="login()">Login</button>
-<p class="link" onclick="showRegister()">Registrieren</p>
+<div id="loginBox" class="box">
+  <h2>Login</h2>
+  <input id="username" placeholder="Username"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <button type="button" onclick="login()">Login</button>
 </div>
 
-<!-- REGISTER -->
-<div id="registerBox" style="display:none;">
-<h2>Registrieren</h2>
-<input id="regUser" placeholder="Benutzername">
-<input id="regPass" type="password" placeholder="Passwort">
-<button onclick="register()">Registrieren</button>
-<p class="link" onclick="showLogin()">Zurück zum Login</p>
-</div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
-
-<h2>Willkommen <span id="currentUser"></span></h2>
-<p>Gitcoins: <span id="coins">0</span></p>
-
-<h3>Gitcoins senden</h3>
-<input id="sendUser" placeholder="Empfänger">
-<input id="sendAmount" type="number" placeholder="Anzahl">
-<button onclick="sendCoins()">Senden</button>
-
-<h3>Transaktions-History</h3>
-<div id="txHistory" class="box"></div>
-
-<button onclick="openMessagePanel()">Nachrichten ✉️</button>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none;">
-<h3>ADMIN PANEL</h3>
-<input id="adminUser" placeholder="Benutzer">
-<input id="adminAmount" placeholder="Coins (+/-)">
-<button onclick="adminEditCoins()">Coins ändern</button>
-</div>
-
-<!-- OWNER PANEL -->
-<div id="ownerPanel" style="display:none;">
-<h3>OWNER PANEL</h3>
-<input id="newAdminUser" placeholder="Benutzer">
-<button onclick="ownerMakeAdmin()">Zu Admin machen</button>
-</div>
-
-<h3>Alle User</h3>
-<table>
-<thead>
-<tr>
-<th>Benutzer</th>
-<th>Coins</th>
-<th>Rolle</th>
-<th>Ban</th>
-</tr>
-</thead>
-<tbody id="userTable"></tbody>
-</table>
-
-</div>
-
-<!-- MESSAGE PANEL -->
-<div id="messagePanel" style="display:none;">
-<h3>Nachricht senden</h3>
-<select id="msgUserSelect"></select>
-<input id="msgText" placeholder="Nachricht">
-<button onclick="sendMessage()">Senden</button>
-<button onclick="closeMessagePanel()">X</button>
-
-<h3>Postfach</h3>
-<div id="inbox" class="box"></div>
-</div>
-
+<div id="panel" class="box">
+  <h2>Willkommen <span id="userDisplay"></span></h2>
+  <p>Gitcoins: <span id="coins">0</span></p>
+  <button onclick="logout()">Logout</button>
 </div>
 
 <script src="script.js"></script>
+
 </body>
 </html>
