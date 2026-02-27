@@ -1,5 +1,8 @@
+// ==========================
+// FIREBASE CONFIG
+// ==========================
 const firebaseConfig = {
-apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
+  apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
   authDomain: "datacentercoc.firebaseapp.com",
   projectId: "datacentercoc",
   storageBucket: "datacentercoc.firebasestorage.app",
@@ -11,199 +14,316 @@ apiKey: "AIzaSyDyCMVLe0xc5TyzDOb4xpZpD2wwP77ruDU",
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let currentUser=null;
-const message=document.getElementById("message");
+let currentUser = null;
+const message = document.getElementById("message");
 
-function showRegister(){
-loginBox.style.display="none";
-registerBox.style.display="block";
+// ==========================
+// LOGIN / REGISTER SWITCH
+// ==========================
+function showRegister() {
+  loginBox.style.display = "none";
+  registerBox.style.display = "block";
 }
 
-function showLogin(){
-registerBox.style.display="none";
-loginBox.style.display="block";
+function showLogin() {
+  registerBox.style.display = "none";
+  loginBox.style.display = "block";
 }
 
-async function register(){
-const user=regUser.value;
-const pass=regPass.value;
+// ==========================
+// REGISTER
+// ==========================
+async function register() {
+  const user = regUser.value.trim();
+  const pass = regPass.value.trim();
 
-const doc=await db.collection("users").doc(user).get();
-if(doc.exists){ message.textContent="Existiert schon"; return;}
+  if (!user || !pass) {
+    message.textContent = "Bitte alles ausfüllen!";
+    return;
+  }
 
-await db.collection("users").doc(user).set({
-password:pass,
-coins:100,
-role:"user",
-messages:[],
-transactions:[]
-});
+  const doc = await db.collection("users").doc(user).get();
+  if (doc.exists) {
+    message.textContent = "Benutzer existiert schon!";
+    return;
+  }
 
-login();
+  await db.collection("users").doc(user).set({
+    password: pass,
+    coins: 100,
+    role: "user",
+    bannedUntil: null,
+    messages: [],
+    transactions: []
+  });
+
+  login();
 }
 
-async function login(){
-const user=logUser.value||regUser.value;
-const pass=logPass.value||regPass.value;
+// ==========================
+// LOGIN
+// ==========================
+async function login() {
+  const user = logUser.value || regUser.value;
+  const pass = logPass.value || regPass.value;
 
-const doc=await db.collection("users").doc(user).get();
-if(!doc.exists){ message.textContent="Nicht gefunden"; return;}
+  const doc = await db.collection("users").doc(user).get();
 
-if(doc.data().password!==pass){ message.textContent="Falsches Passwort"; return;}
+  if (!doc.exists) {
+    message.textContent = "Benutzer nicht gefunden!";
+    return;
+  }
 
-currentUser=user;
-currentUserSpan=document.getElementById("currentUser");
-currentUserSpan.textContent=user;
+  const data = doc.data();
 
-loginBox.style.display="none";
-registerBox.style.display="none";
-dashboard.style.display="block";
+  if (data.password !== pass) {
+    message.textContent = "Falsches Passwort!";
+    return;
+  }
 
-loadCoins();
-loadUserTable();
-loadTxHistory();
-fillUserDropdown();
+  if (data.bannedUntil && data.bannedUntil.toDate() > new Date()) {
+    message.textContent = "Konto ist gesperrt!";
+    return;
+  }
 
-if(doc.data().role==="admin"||doc.data().role==="owner")
-adminPanel.style.display="block";
+  currentUser = user;
 
-if(doc.data().role==="owner")
-ownerPanel.style.display="block";
+  currentUserSpan = document.getElementById("currentUser");
+  currentUserSpan.textContent = user;
+
+  loginBox.style.display = "none";
+  registerBox.style.display = "none";
+  dashboard.style.display = "block";
+
+  loadCoins();
+  loadUserTable();
+  loadTxHistory();
+  loadInbox();
+  fillUserDropdown();
+
+  if (data.role === "admin" || data.role === "owner") {
+    adminPanel.style.display = "block";
+  }
+
+  if (data.role === "owner") {
+    ownerPanel.style.display = "block";
+  }
+
+  message.textContent = "Login erfolgreich 😎";
 }
 
-function loadCoins(){
-db.collection("users").doc(currentUser)
-.onSnapshot(doc=>{
-coins.textContent=doc.data().coins;
-});
+// ==========================
+// LIVE COINS
+// ==========================
+function loadCoins() {
+  db.collection("users").doc(currentUser)
+    .onSnapshot(doc => {
+      coins.textContent = doc.data().coins;
+    });
 }
 
-async function sendCoins(){
-const to=sendUser.value;
-const amount=parseInt(sendAmount.value);
+// ==========================
+// SEND COINS + HISTORY
+// ==========================
+async function sendCoins() {
+  const to = sendUser.value.trim();
+  const amount = parseInt(sendAmount.value);
 
-const fromRef=db.collection("users").doc(currentUser);
-const toRef=db.collection("users").doc(to);
+  if (!to || !amount || amount <= 0) {
+    message.textContent = "Ungültige Eingabe!";
+    return;
+  }
 
-const fromDoc=await fromRef.get();
-const toDoc=await toRef.get();
+  const fromRef = db.collection("users").doc(currentUser);
+  const toRef = db.collection("users").doc(to);
 
-if(!toDoc.exists){message.textContent="Empfänger fehlt";return;}
-if(fromDoc.data().coins<amount){message.textContent="Zu wenig Coins";return;}
+  const fromDoc = await fromRef.get();
+  const toDoc = await toRef.get();
 
-await fromRef.update({
-coins:fromDoc.data().coins-amount,
-transactions:firebase.firestore.FieldValue.arrayUnion({
-type:"sent",
-to:to,
-amount:amount,
-date:new Date()
-})
-});
+  if (!toDoc.exists) {
+    message.textContent = "Empfänger existiert nicht!";
+    return;
+  }
 
-await toRef.update({
-coins:toDoc.data().coins+amount,
-transactions:firebase.firestore.FieldValue.arrayUnion({
-type:"received",
-from:currentUser,
-amount:amount,
-date:new Date()
-})
-});
+  if (fromDoc.data().coins < amount) {
+    message.textContent = "Zu wenig Gitcoins!";
+    return;
+  }
 
-loadTxHistory();
+  await fromRef.update({
+    coins: fromDoc.data().coins - amount,
+    transactions: firebase.firestore.FieldValue.arrayUnion({
+      type: "sent",
+      to: to,
+      amount: amount,
+      date: new Date()
+    })
+  });
+
+  await toRef.update({
+    coins: toDoc.data().coins + amount,
+    transactions: firebase.firestore.FieldValue.arrayUnion({
+      type: "received",
+      from: currentUser,
+      amount: amount,
+      date: new Date()
+    })
+  });
+
+  loadTxHistory();
+  message.textContent = "Coins gesendet 💰";
 }
 
-function loadTxHistory(){
-db.collection("users").doc(currentUser)
-.onSnapshot(doc=>{
-txHistory.innerHTML="";
-(doc.data().transactions||[]).forEach(tx=>{
-const div=document.createElement("div");
-if(tx.type==="sent")
-div.textContent=`An ${tx.to} -${tx.amount}`;
-else
-div.textContent=`Von ${tx.from} +${tx.amount}`;
-txHistory.appendChild(div);
-});
-});
+// ==========================
+// TRANSACTION HISTORY
+// ==========================
+function loadTxHistory() {
+  db.collection("users").doc(currentUser)
+    .onSnapshot(doc => {
+
+      txHistory.innerHTML = "";
+      const txs = doc.data().transactions || [];
+
+      txs.slice().reverse().forEach(tx => {
+        const div = document.createElement("div");
+
+        if (tx.type === "sent") {
+          div.textContent = `An ${tx.to} -${tx.amount}`;
+        } else {
+          div.textContent = `Von ${tx.from} +${tx.amount}`;
+        }
+
+        txHistory.appendChild(div);
+      });
+    });
 }
 
-function loadUserTable(){
-db.collection("users").onSnapshot(snapshot=>{
-userTable.innerHTML="";
-snapshot.forEach(doc=>{
-const data=doc.data();
-const tr=document.createElement("tr");
-tr.innerHTML=`
-<td>${doc.id}</td>
-<td>${data.coins||0}</td>
-<td>${data.role||"user"}</td>
-<td>${data.bannedUntil?"Ja":"Nein"}</td>
-`;
-userTable.appendChild(tr);
-});
-});
+// ==========================
+// USER TABLE (ALLES ANZEIGEN)
+// ==========================
+function loadUserTable() {
+  db.collection("users").onSnapshot(snapshot => {
+
+    userTable.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${doc.id}</td>
+        <td>${data.coins || 0}</td>
+        <td>${data.role || "user"}</td>
+        <td>${data.bannedUntil ? "Ja" : "Nein"}</td>
+      `;
+
+      userTable.appendChild(tr);
+    });
+  });
 }
 
-function fillUserDropdown(){
-msgUserSelect.innerHTML="";
-db.collection("users").get().then(snapshot=>{
-snapshot.forEach(doc=>{
-if(doc.id!==currentUser){
-const option=document.createElement("option");
-option.value=doc.id;
-option.textContent=doc.id;
-msgUserSelect.appendChild(option);
-}
-});
-});
-}
+// ==========================
+// ADMIN COINS EDIT
+// ==========================
+async function adminEditCoins() {
+  const user = adminUser.value.trim();
+  const amount = parseInt(adminAmount.value);
 
-function openMessagePanel(){
-dashboard.style.display="none";
-messagePanel.style.display="block";
+  const ref = db.collection("users").doc(user);
+  const doc = await ref.get();
+
+  if (!doc.exists) return;
+
+  await ref.update({
+    coins: doc.data().coins + amount
+  });
 }
 
-function closeMessagePanel(){
-messagePanel.style.display="none";
-dashboard.style.display="block";
+// ==========================
+// OWNER MAKE ADMIN
+// ==========================
+async function ownerMakeAdmin() {
+  const user = newAdminUser.value.trim();
+
+  await db.collection("users").doc(user).update({
+    role: "admin"
+  });
 }
 
-async function sendMessage(){
-const to=msgUserSelect.value;
-const text=msgText.value;
-
-if(!to||!text)return;
-
-const ref=db.collection("users").doc(to);
-await ref.update({
-messages:firebase.firestore.FieldValue.arrayUnion({
-from:currentUser,
-text:text
-})
-});
-msgText.value="";
+// ==========================
+// MESSAGES
+// ==========================
+function openMessagePanel() {
+  dashboard.style.display = "none";
+  messagePanel.style.display = "block";
 }
 
-db.collection("users").doc(()=>currentUser).onSnapshot(()=>{});
-
-function loadInbox(){
-db.collection("users").doc(currentUser)
-.onSnapshot(doc=>{
-inbox.innerHTML="";
-(doc.data().messages||[]).forEach((msg,index)=>{
-const div=document.createElement("div");
-div.innerHTML=`${msg.from}: ${msg.text} <button onclick="deleteMsg(${index})">X</button>`;
-inbox.appendChild(div);
-});
-});
+function closeMessagePanel() {
+  messagePanel.style.display = "none";
+  dashboard.style.display = "block";
 }
 
-async function deleteMsg(index){
-const ref=db.collection("users").doc(currentUser);
-const doc=await ref.get();
-let msgs=doc.data().messages;
-msgs.splice(index,1);
-await ref.update({messages:msgs});
+function fillUserDropdown() {
+  msgUserSelect.innerHTML = "";
+
+  db.collection("users").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      if (doc.id !== currentUser) {
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = doc.id;
+        msgUserSelect.appendChild(option);
+      }
+    });
+  });
+}
+
+async function sendMessage() {
+  const to = msgUserSelect.value;
+  const text = msgText.value.trim();
+
+  if (!to || !text) return;
+
+  await db.collection("users").doc(to).update({
+    messages: firebase.firestore.FieldValue.arrayUnion({
+      from: currentUser,
+      text: text
+    })
+  });
+
+  msgText.value = "";
+}
+
+// ==========================
+// INBOX + DELETE
+// ==========================
+function loadInbox() {
+  db.collection("users").doc(currentUser)
+    .onSnapshot(doc => {
+
+      inbox.innerHTML = "";
+      const msgs = doc.data().messages || [];
+
+      msgs.forEach((msg, index) => {
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+          ${msg.from}: ${msg.text}
+          <button onclick="deleteMsg(${index})">X</button>
+        `;
+
+        inbox.appendChild(div);
+      });
+    });
+}
+
+async function deleteMsg(index) {
+  const ref = db.collection("users").doc(currentUser);
+  const doc = await ref.get();
+
+  const msgs = doc.data().messages;
+  msgs.splice(index, 1);
+
+  await ref.update({ messages: msgs });
 }
